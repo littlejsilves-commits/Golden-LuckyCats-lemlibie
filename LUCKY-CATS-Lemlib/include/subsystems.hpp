@@ -1,0 +1,91 @@
+#pragma once
+
+#include "lemlib/api.hpp" // IWYU pragma: keep
+#include "main.h"         // IWYU pragma: keep
+
+// Every motor, sensor and number that describes this robot. Ports live in
+// subsystems.cpp and nowhere else.
+
+// ---------------------------------------------------------------- drivetrain
+extern pros::MotorGroup left_motors;
+extern pros::MotorGroup right_motors;
+extern lemlib::Drivetrain drivetrain;
+
+// ------------------------------------------------------------------- sensors
+extern pros::Imu imu;
+extern pros::Rotation horizontal_encoder;
+extern pros::Rotation vertical_encoder;
+extern pros::Rotation claw; // measures the claw pivot itself
+
+extern lemlib::TrackingWheel horizontal_tracking_wheel;
+extern lemlib::TrackingWheel left_drive_tracker;
+extern lemlib::TrackingWheel right_drive_tracker;
+extern lemlib::OdomSensors sensors;
+
+// --------------------------------------------------------------------- chassis
+extern lemlib::ControllerSettings lateral_controller;
+extern lemlib::ControllerSettings angular_controller;
+extern lemlib::Chassis chassis;
+
+// ---------------------------------------------------------------- mechanisms
+extern pros::MotorGroup lift;
+extern pros::Motor claw_pivot;
+extern pros::Motor claw_spin;
+extern pros::Motor intake;
+extern pros::Motor toggle_motor; // port 18, Y turns it on and off
+
+// ------------------------------------------------------- numbers worth changing
+const double LIFT_TICKS = 900;    // motor degrees, bottom to top
+const double LIFT_TRAVEL = 0.15;  // ride height while driving, 0 to 1
+const double LIFT_TOP = 2700;     // do not drive the lift above this
+const double LIFT_BOTTOM = -50;   // or below this
+const double CLAW_DRIFT_DEG = 15; // slip allowed before the claw is put back
+
+// Above this the claw tucks itself to position 1.
+const double LIFT_CLAW_DEG = 200;
+
+
+// Claw pivot speed in RPM. 200 is flat out for a green cartridge -- the second
+// argument of move_absolute is a velocity, and PROS clamps it to whatever the
+// gearset can do. Lower this to make the claw move more gently.
+const int CLAW_SPEED = 200;
+
+// Claw pivot targets in motor degrees, one per position. Measured with the
+// robot powered on, lift down and claw pointing down -- that is where
+// claw_pivot.tare_position() puts zero.
+extern const double CLAW_POS[3];
+
+// False until chassis.calibrate() has finished. calibrate() zeroes the pose
+// and starts the odometry task, so ANY setPose before it completes is thrown
+// away -- which makes a route drive from a position it was never at.
+extern volatile bool chassis_ready;
+
+// re-home: drive this far past pos 0, settle, then call that spot pos 0
+const int CLAW_HOME_PUSH = 60;       // how hard we lean on the stop
+
+// What the encoder should read with the claw pushed against its stop. Boot
+// tares at wherever gravity leaves it, which is a bit above the stop, so the
+// two are not the same spot. Measured 30 off. Flip the sign if a re-home
+// sends the positions the wrong way.
+const double CLAW_STOP_READS = 30;
+const uint32_t CLAW_HOME_MIN_MS = 250;   // spin up before we trust the stall
+const uint32_t CLAW_HOME_GIVEUP_MS = 2000;
+const uint32_t CLAW_HOME_SETTLE_MS = 20;
+
+// Drive the claw down past pos 0, then call that the new zero. Returns
+// straight away, claw_update() finishes it off.
+void claw_home();
+
+// Move the claw to position 0, 1 or 2. Returns immediately.
+void spinclaw(int position);
+
+// Call every loop. Stops the claw straining once it arrives, and puts it back
+// if the rotation sensor says something knocked it off.
+void claw_update();
+
+// The position spinclaw() was last asked for.
+int claw_at();
+
+// Encoder reading at the stop on the last re-home, before zeroing. Shown on
+// the brain as S<n> -- that number is what CLAW_STOP_READS should be.
+double claw_home_raw();
