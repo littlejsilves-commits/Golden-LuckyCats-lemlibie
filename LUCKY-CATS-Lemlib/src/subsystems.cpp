@@ -58,12 +58,11 @@ lemlib::ControllerSettings angular_controller(2, // proportional gain (kP)
 lemlib::Chassis chassis(drivetrain, lateral_controller, angular_controller,
                         sensors);
 
-pros::MotorGroup lift({-20, 19}, pros::MotorGearset::green);
+pros::MotorGroup lift({-18, 2}, pros::MotorGearset::green);
 pros::Motor claw_pivot(-3, pros::MotorGearset::green);
 pros::Motor claw_spin(1, pros::MotorGearset::green);
 pros::Motor intake(9, pros::MotorGearset::blue);
 // Gearset and direction are a guess -- check both on the robot.
-pros::Motor toggle_motor(18, pros::MotorGearset::green);
 
 volatile bool chassis_ready = false;
 
