@@ -1,7 +1,7 @@
 #include "subsystems.hpp" // IWYU pragma: keep
-
-pros::MotorGroup left_motors({-7, -5}, pros::MotorGearset::blue);
-pros::MotorGroup right_motors({4, 6}, pros::MotorGearset::blue);
+//
+pros::MotorGroup left_motors({-14, 15, -16}, pros::MotorGearset::blue);
+pros::MotorGroup right_motors({11, -12, 13}, pros::MotorGearset::blue);
 
 lemlib::Drivetrain drivetrain(&left_motors, &right_motors,
                               11.5,                         // track width, inches
